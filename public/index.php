@@ -67,6 +67,10 @@ switch (true) {
     case $url === 'delete_account':
         (new HomeController())->delete_account();
         break;
+    
+    case $url === 'creer':
+    (new HomeController())->creer();
+    break;
 
     // Route final : 404
     default:

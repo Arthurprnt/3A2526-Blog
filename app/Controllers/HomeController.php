@@ -280,4 +280,27 @@ class HomeController extends BaseController {
             ]);
         }
     }
+
+    /**
+     * Affiche la page "creer". (NOUVEAU)
+     */
+    public function creer(): void {
+        $errors = [];
+        $success_message = $this->session->get('creer_success_message');
+        $this->session->remove('creer_success_message'); // Message flash
+
+        $session = SessionManager::getInstance();
+
+        if ($session->get("connecte") === "false") {
+            // L'utilisateut ne peut pas créer de post si pas connecté
+            header('Location: /3A2526-Blog/');
+        } else {
+            $this->render('creer.twig', [
+                'page_title' => 'Nouveau post:',
+                'errors' => $errors,
+                'success_message' => $success_message,
+                'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+            ]);
+        }
+    }
 }

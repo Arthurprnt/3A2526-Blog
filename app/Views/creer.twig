@@ -1,0 +1,48 @@
+{% extends "base.twig" %}
+
+{% block content %}
+    <h1 class="mb-4">{{ page_title }}</h1>
+
+    {% if success_message %}
+        <div class="alert alert-success" role="alert">
+            {{ success_message }}
+        </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+
+            <form action="/3A2526-Blog/creer" method="POST" novalidate>
+                
+                {# Champ Titre #}
+                <div class="mb-3">
+                    <label for="titre" class="form-label">Titre</label>
+                    <input type="text" 
+                           class="form-control {% if errors.titre %}is-invalid{% endif %}" 
+                           id="titre" 
+                           name="titre" 
+                           value="{{ old_input.titre|default('') }}" 
+                           required>
+                    {% if errors.titre %}
+                        <div class="invalid-feedback">{{ errors.titre }}</div>
+                    {% endif %}
+                </div>
+                
+                {# Champ Message #}
+                <div class="mb-3">
+                    <label for="message" class="form-label">Message</label>
+                    <textarea class="form-control {% if errors.message %}is-invalid{% endif %}" 
+                              id="message" 
+                              name="message" 
+                              rows="5" 
+                              required>{{ old_input.message|default('') }}</textarea>
+                    {% if errors.message %}
+                        <div class="invalid-feedback">{{ errors.message }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">Créer le post</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
