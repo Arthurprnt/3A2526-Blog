@@ -2,7 +2,7 @@
 
 
 {% block content %}
-    <script>localStorage.setItem('connected', true)</script>
+    <script>localStorage.setItem('connected', false)</script>
     <h1 class="mb-4">{{ page_title }}</h1>
 
     {% if success_message %}
@@ -13,8 +13,7 @@
 
     <div class="row justify-content-center">
         <div class="col-lg-7">
-            <p><BR>Nom utilisateur: {{ name }}</p>
-            <p>Adresse mail: {{ email }}</p>
+            <p><BR>Vous avez été déconnecté de votre compte.</p>
         </div>
     </div>
 {% endblock %}

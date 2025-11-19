@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="fr" x-data="{ 
         theme: localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
-        isDyslexicFont: localStorage.getItem('dyslexicFont') === 'true' 
+        isDyslexicFont: localStorage.getItem('dyslexicFont') === 'true',
+        connected: localStorage.getItem('connected') === 'true'
     }" x-bind:data-bs-theme="theme" >
 <head>
     <meta charset="utf-8">
@@ -69,12 +70,21 @@
             </li>
 
             <li class="nav-item">
-                <a href="/3A2526-Blog/public/connexion" style="text-decoration: none !important;">
+                <a x-show="!connected" href="/3A2526-Blog/public/connexion" style="text-decoration: none !important;">
                   <button
                     class="btn btn-outline-warning d-flex align-items-center"
                     aria-label="Se connecter à son compte"
                   >
                     <span>🔓 Connexion</span>
+                  </button>
+                </a>
+
+                <a x-show="connected" href="/3A2526-Blog/public/deconnexion" style="text-decoration: none !important;">
+                  <button
+                    class="btn btn-outline-warning d-flex align-items-center"
+                    aria-label="Se connecter à son compte"
+                  >
+                    <span>🔓 Déconnexion</span>
                   </button>
                 </a>
             </li>

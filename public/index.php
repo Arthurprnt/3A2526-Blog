@@ -48,13 +48,18 @@ switch (true) {
     case $url === 'connexion':
         (new HomeController())->connexion();
         break;
+    
+    // Route 6 : Page de Déconnexion
+    case $url === 'deconnexion':
+        (new HomeController())->deconnexion();
+        break;
 
-    // Route 5 : Page de Signup
+    // Route 7 : Page de Signup
     case $url === 'signup':
         (new HomeController())->signup();
         break;
     
-    // Route 6 : Page de Dashboard
+    // Route 8 : Page de Dashboard
     case $url === 'dashboard':
         (new HomeController())->dashboard();
         break;

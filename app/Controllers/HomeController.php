@@ -1,6 +1,7 @@
 <?php
 namespace App\Controllers;
 
+use PDO;
 use App\Core\BaseController;
 use App\Models\PostModel;
 use App\Core\Database;
@@ -111,12 +112,27 @@ class HomeController extends BaseController {
             if (empty($password)) $errors['password'] = "Le mot de passe est requis.";
 
             if (empty($errors)) {
-                $this->logger->info("Nouvelle connexion au compte: $email.");
+                $db = Database::getInstance()->getConnection();
+                $stmt = $db->prepare("SELECT * FROM Utilisateurs WHERE email = ?");
+                $stmt->execute([$email]);
+                $res = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($res && password_verify($password, $res['mot_de_passe'])) {
+                    $session = SessionManager::getInstance();
+                    $session->set("connecte", "true");
+                    $session->set("nom_utilisateur", $res["nom_utilisateur"]);
+                    $session->set("email", $email);
+
+                    $this->logger->info("Nouvelle connexion au compte: $email.");
                 
-                // 3. Redirection (Post/Redirect/Get pattern)
-                $this->session->set('connexion_success_message', 'Vous êtes maintenant connecté au blog !');
-                header('Location: /3A2526-Blog/public/connexion');
-                exit;
+                    // 3. Redirection (Post/Redirect/Get pattern)
+                    $this->session->set('dashboard_success_message', 'Connexion effectuée avec succès !');
+                    header('Location: /3A2526-Blog/public/dashboard');
+                    exit;
+                } else {
+                    $this->logger->warning("La tentative de connexion au compte $email a échouée.");
+                    $this->session->set('connexion_success_message', 'Erreur lors de la connexion (mauvais email ou mot de passe).');
+                    header('Location: /3A2526-Blog/public/connexion');
+                }
             } else {
                 $this->logger->warning("Erreur lors de la connexion à votre compte.");
             }
@@ -124,6 +140,27 @@ class HomeController extends BaseController {
 
         $this->render('connexion.twig', [
             'page_title' => 'Se connecter',
+            'errors' => $errors,
+            'success_message' => $success_message,
+            'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+        ]);
+    }
+
+    /**
+     * Affiche la page "Deconnexion". (NOUVEAU)
+     */
+    public function deconnexion(): void {
+        $errors = [];
+        $success_message = $this->session->get('deconnexion_success_message');
+        $this->session->remove('deconnexion_success_message'); // Message flash
+
+        $session = SessionManager::getInstance();
+        $session->set("connecte", "false");
+        $session->set("nom_utilisateur", "");
+        $session->set("email", "");
+
+        $this->render('deconnexion.twig', [
+            'page_title' => 'Déconnexion',
             'errors' => $errors,
             'success_message' => $success_message,
             'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
@@ -157,6 +194,11 @@ class HomeController extends BaseController {
                     $stmt = $db->prepare("INSERT INTO Utilisateurs (nom_utilisateur, email, mot_de_passe, est_actif) VALUES (?, ?, ?, 1)");
                     $stmt->execute([$name, $email, password_hash($password, PASSWORD_DEFAULT)]);
                     
+                    $session = SessionManager::getInstance();
+                    $session->set("connecte", "true");
+                    $session->set("nom_utilisateur", $name);
+                    $session->set("email", $email);
+
                     $this->logger->info("Nouveau compte créé avec l'email: $email.");
                     $this->session->set('dashboard_success_message', 'Création du compte effectuée avec succès !');
                     header('Location: /3A2526-Blog/public/dashboard');
@@ -187,11 +229,25 @@ class HomeController extends BaseController {
 
         $session = SessionManager::getInstance();
 
-        $this->render('dashboard.twig', [
-            'page_title' => 'Dashboard utilisateur',
-            'errors' => $errors,
-            'success_message' => $success_message,
-            'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
-        ]);
+        if ($session->get("connecte") === "false") {
+            $this->render('connexion.twig', [
+                'page_title' => 'Se connecter',
+                'errors' => $errors,
+                'success_message' => $success_message,
+                'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+            ]);
+        } else {
+            $name = $session->get("nom_utilisateur");
+            $email = $session->get("email");
+            
+            $this->render('dashboard.twig', [
+                'page_title' => 'Dashboard utilisateur',
+                'name' => $name,
+                'email' => $email,
+                'errors' => $errors,
+                'success_message' => $success_message,
+                'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+            ]);
+        }
     }
 }
