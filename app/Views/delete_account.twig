@@ -1,0 +1,19 @@
+{% extends "base.twig" %}
+
+
+{% block content %}
+    <script>localStorage.setItem('connected', false)</script>
+    <h1 class="mb-4">{{ page_title }}</h1>
+
+    {% if success_message %}
+        <div class="alert alert-success" role="alert">
+            {{ success_message }}
+        </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <p><BR>Votre compte a été supprimé.</p>
+        </div>
+    </div>
+{% endblock %}

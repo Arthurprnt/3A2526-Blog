@@ -79,7 +79,7 @@ class HomeController extends BaseController {
                 
                 // 3. Redirection (Post/Redirect/Get pattern)
                 $this->session->set('contact_success_message', 'Votre message a bien été envoyé !');
-                header('Location: /3A2526-Blog/public/contact');
+                header('Location: /3A2526-Blog/contact');
                 exit;
             } else {
                 $this->logger->warning("Erreur de validation du formulaire de contact.");
@@ -125,12 +125,12 @@ class HomeController extends BaseController {
                 
                     // 3. Redirection (Post/Redirect/Get pattern)
                     $this->session->set('dashboard_success_message', 'Connexion effectuée avec succès !');
-                    header('Location: /3A2526-Blog/public/dashboard');
+                    header('Location: /3A2526-Blog/dashboard');
                     exit;
                 } else {
                     $this->logger->warning("La tentative de connexion au compte $email a échouée.");
                     $this->session->set('connexion_success_message', 'Erreur lors de la connexion (mauvais email ou mot de passe).');
-                    header('Location: /3A2526-Blog/public/connexion');
+                    header('Location: /3A2526-Blog/connexion');
                 }
             } else {
                 $this->logger->warning("Erreur lors de la connexion à votre compte.");
@@ -186,7 +186,6 @@ class HomeController extends BaseController {
 
             if (empty($errors)) {                
                 // 3. Redirection (Post/Redirect/Get pattern)
-                $db = Database::getInstance()->getConnection();
                 try {
                     // Création de l'utilisateur dans la bd
                     $db = Database::getInstance()->getConnection();
@@ -210,7 +209,7 @@ class HomeController extends BaseController {
 
                     $this->logger->info("Nouveau compte créé avec l'email: $email.");
                     $this->session->set('dashboard_success_message', 'Création du compte effectuée avec succès !');
-                    header('Location: /3A2526-Blog/public/dashboard');
+                    header('Location: /3A2526-Blog/dashboard');
                     exit;
                 } catch (PDOException $e) {
                     die("Erreur SQL : " . $e->getMessage());
@@ -229,7 +228,7 @@ class HomeController extends BaseController {
     }
 
     /**
-     * Affiche la page "Signup". (NOUVEAU)
+     * Affiche la page "Dashboard". (NOUVEAU)
      */
     public function dashboard(): void {
         $errors = [];
@@ -240,12 +239,7 @@ class HomeController extends BaseController {
 
         if ($session->get("connecte") === "false") {
             // On invite l'utilisateur à se connecter
-            $this->render('connexion.twig', [
-                'page_title' => 'Se connecter',
-                'errors' => $errors,
-                'success_message' => $success_message,
-                'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
-            ]);
+            header('Location: /3A2526-Blog/connexion');
         } else {
             // On affiche les données liées à l'utilisateur
             $user = $session->get("user");
@@ -253,6 +247,33 @@ class HomeController extends BaseController {
             $this->render('dashboard.twig', [
                 'page_title' => 'Dashboard utilisateur',
                 'user' => $user,
+                'errors' => $errors,
+                'success_message' => $success_message,
+                'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+            ]);
+        }
+    }
+
+    /**
+     * Affiche la page "delete_account". (NOUVEAU)
+     */
+    public function delete_account(): void {
+        $errors = [];
+        $success_message = $this->session->get('delete_account_success_message');
+        $this->session->remove('delete_account_success_message'); // Message flash
+
+        $session = SessionManager::getInstance();
+
+        if ($session->get("connecte") === "false") {
+            // L'utilisateut ne peut pas supp son compte si pas connecté
+            header('Location: /3A2526-Blog/');
+        } else {
+            $user = $session->get('user');
+            $db = Database::getInstance()->getConnection();
+            $stmt = $db->prepare("DELETE FROM Utilisateurs WHERE email = ?");
+            $stmt->execute([$user['email']]);
+            $this->render('delete_account.twig', [
+                'page_title' => 'Suppression du compte',
                 'errors' => $errors,
                 'success_message' => $success_message,
                 'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
