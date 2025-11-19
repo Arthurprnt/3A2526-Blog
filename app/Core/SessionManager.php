@@ -1,5 +1,6 @@
 <?php
 namespace App\Core;
+use App\Controllers\Logger;
 
 class SessionManager {
     private static ?self $instance = null;

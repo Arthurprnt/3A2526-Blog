@@ -1,0 +1,64 @@
+{% extends "base.twig" %}
+
+{% block content %}
+    <h1 class="mb-4">{{ page_title }}</h1>
+
+    {% if success_message %}
+        <div class="alert alert-success" role="alert">
+            {{ success_message }}
+        </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <form action="/3A2526-Blog/public/signup" method="POST" novalidate>
+
+                {# Champ Nom #}
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nom</label>
+                    <input type="text" 
+                           class="form-control {% if errors.name %}is-invalid{% endif %}" 
+                           id="name" 
+                           name="name" 
+                           value="{{ old_input.name|default('') }}" 
+                           required>
+                    {% if errors.name %}
+                        <div class="invalid-feedback">{{ errors.name }}</div>
+                    {% endif %}
+                </div>
+
+                {# Champ Email #}
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" 
+                           class="form-control {% if errors.email %}is-invalid{% endif %}" 
+                           id="email" 
+                           name="email" 
+                           value="{{ old_input.email|default('') }}" 
+                           required>
+                    {% if errors.email %}
+                        <div class="invalid-feedback">{{ errors.email }}</div>
+                    {% endif %}
+                </div>
+
+                {# Champ Mdp #}
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <input type="password" 
+                           class="form-control {% if errors.password %}is-invalid{% endif %}" 
+                           id="password" 
+                           name="password" 
+                           value="" 
+                           required>
+                    {% if errors.password %}
+                        <div class="invalid-feedback">{{ errors.password }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">Créer mon compte</button>
+            </form>
+
+            <p><BR>Vous avez déjà un compte ? Connectez-vous <a href="/3A2526-Blog/public/connexion">ici</a> !</p>
+        </div>
+    </div>
+{% endblock %}

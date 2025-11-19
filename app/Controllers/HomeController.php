@@ -3,6 +3,9 @@ namespace App\Controllers;
 
 use App\Core\BaseController;
 use App\Models\PostModel;
+use App\Core\Database;
+use App\Core\SessionManager;
+use App\Controllers\Logger;
 
 class HomeController extends BaseController {
     private PostModel $postModel;
@@ -91,4 +94,104 @@ class HomeController extends BaseController {
         ]);
     }
 
+    /**
+     * Affiche la page "Connexion". (NOUVEAU)
+     */
+    public function connexion(): void {
+        $errors = [];
+        $success_message = $this->session->get('connexion_success_message');
+        $this->session->remove('connexion_success_message'); // Message flash
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // 1. Nettoyage et Validation
+            $email = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+            $password = $_POST['password'] ?? '';
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors['email'] = "L'adresse email est invalide.";
+            if (empty($password)) $errors['password'] = "Le mot de passe est requis.";
+
+            if (empty($errors)) {
+                $this->logger->info("Nouvelle connexion au compte: $email.");
+                
+                // 3. Redirection (Post/Redirect/Get pattern)
+                $this->session->set('connexion_success_message', 'Vous êtes maintenant connecté au blog !');
+                header('Location: /3A2526-Blog/public/connexion');
+                exit;
+            } else {
+                $this->logger->warning("Erreur lors de la connexion à votre compte.");
+            }
+        }
+
+        $this->render('connexion.twig', [
+            'page_title' => 'Se connecter',
+            'errors' => $errors,
+            'success_message' => $success_message,
+            'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+        ]);
+    }
+
+    /**
+     * Affiche la page "Signup". (NOUVEAU)
+     */
+    public function signup(): void {
+        $errors = [];
+        $success_message = $this->session->get('signup_success_message');
+        $this->session->remove('signup_success_message'); // Message flash
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // 1. Nettoyage et Validation
+            $name = trim($_POST['name'] ?? '');
+            $email = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+            $password = $_POST['password'] ?? '';
+            $this->logger->info("Début de la procédure de création de compte");
+
+            if (empty($name)) $errors['name'] = "Le nom est requis.";
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors['email'] = "L'adresse email est invalide.";
+            if (empty($password)) $errors['password'] = "Le mot de passe est requis.";
+
+            if (empty($errors)) {                
+                // 3. Redirection (Post/Redirect/Get pattern)
+                $db = Database::getInstance()->getConnection();
+                try {
+                    $db = Database::getInstance()->getConnection();
+                    $stmt = $db->prepare("INSERT INTO Utilisateurs (nom_utilisateur, email, mot_de_passe, est_actif) VALUES (?, ?, ?, 1)");
+                    $stmt->execute([$name, $email, password_hash($password, PASSWORD_DEFAULT)]);
+                    
+                    $this->logger->info("Nouveau compte créé avec l'email: $email.");
+                    $this->session->set('dashboard_success_message', 'Création du compte effectuée avec succès !');
+                    header('Location: /3A2526-Blog/public/dashboard');
+                    exit;
+                } catch (PDOException $e) {
+                    die("Erreur SQL : " . $e->getMessage());
+                }
+            } else {
+                $this->logger->warning("Erreur lors de la création du compte.");
+            }
+        }
+
+        $this->render('signup.twig', [
+            'page_title' => 'Création de compte',
+            'errors' => $errors,
+            'success_message' => $success_message,
+            'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+        ]);
+    }
+
+    /**
+     * Affiche la page "Signup". (NOUVEAU)
+     */
+    public function dashboard(): void {
+        $errors = [];
+        $success_message = $this->session->get('dashboard_success_message');
+        $this->session->remove('dashboard_success_message'); // Message flash
+
+        $session = SessionManager::getInstance();
+
+        $this->render('dashboard.twig', [
+            'page_title' => 'Dashboard utilisateur',
+            'errors' => $errors,
+            'success_message' => $success_message,
+            'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+        ]);
+    }
 }

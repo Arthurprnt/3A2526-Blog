@@ -39,12 +39,27 @@ switch (true) {
         (new HomeController())->about();
         break;
 
-        // Route 4 : Page de Contact (NOUVEAU)
+    // Route 4 : Page de Contact (NOUVEAU)
     case $url === 'contact':
         (new HomeController())->contact();
         break;
+    
+    // Route 5 : Page de Connexion
+    case $url === 'connexion':
+        (new HomeController())->connexion();
+        break;
 
-    // Route 5 : 404
+    // Route 5 : Page de Signup
+    case $url === 'signup':
+        (new HomeController())->signup();
+        break;
+    
+    // Route 6 : Page de Dashboard
+    case $url === 'dashboard':
+        (new HomeController())->dashboard();
+        break;
+
+    // Route final : 404
     default:
         (new HomeController())->error404();
         break;
