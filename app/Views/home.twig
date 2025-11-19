@@ -19,7 +19,7 @@
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title">{{ post.title }}</h5>
                         <p class="card-text">{{ post.content|slice(0, 120) }}...</p>
-                        <a href="/3A2526-Blog/public/post/{{ post.id }}" class="btn btn-primary mt-auto">Lire la suite</a>
+                        <a href="/3A2526-Blog/post/{{ post.id }}" class="btn btn-primary mt-auto">Lire la suite</a>
                     </div>
                     <div class="card-footer text-muted">
                         Publié le {{ post.created_at|date("d/m/Y") }}
