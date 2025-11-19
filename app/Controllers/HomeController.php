@@ -119,8 +119,7 @@ class HomeController extends BaseController {
                 if ($res && password_verify($password, $res['mot_de_passe'])) {
                     $session = SessionManager::getInstance();
                     $session->set("connecte", "true");
-                    $session->set("nom_utilisateur", $res["nom_utilisateur"]);
-                    $session->set("email", $email);
+                    $session->set("user", $res);
 
                     $this->logger->info("Nouvelle connexion au compte: $email.");
                 
@@ -156,8 +155,7 @@ class HomeController extends BaseController {
 
         $session = SessionManager::getInstance();
         $session->set("connecte", "false");
-        $session->set("nom_utilisateur", "");
-        $session->set("email", "");
+        $session->set("user", "");
 
         $this->render('deconnexion.twig', [
             'page_title' => 'Déconnexion',
@@ -190,14 +188,25 @@ class HomeController extends BaseController {
                 // 3. Redirection (Post/Redirect/Get pattern)
                 $db = Database::getInstance()->getConnection();
                 try {
+                    // Création de l'utilisateur dans la bd
                     $db = Database::getInstance()->getConnection();
                     $stmt = $db->prepare("INSERT INTO Utilisateurs (nom_utilisateur, email, mot_de_passe, est_actif) VALUES (?, ?, ?, 1)");
                     $stmt->execute([$name, $email, password_hash($password, PASSWORD_DEFAULT)]);
-                    
+
+                    // Récupère l'id de l'utilisateur qui vient d'être créé
+                    $stmt = $db->prepare("SELECT * FROM Utilisateurs WHERE email = ?");
+                    $stmt->execute([$email]);
+                    $res = $stmt->fetch(PDO::FETCH_ASSOC);
+
                     $session = SessionManager::getInstance();
                     $session->set("connecte", "true");
-                    $session->set("nom_utilisateur", $name);
-                    $session->set("email", $email);
+                    $session->set("user", $res);
+
+                    $userId = $res["id"];
+
+                    // Ajoute le rôle par défaut au nouvel utilisateur
+                    $stmt = $db->prepare("INSERT INTO Role_User (role_id, user_id) VALUES (3, ?)");
+                    $stmt->execute([$userId]);
 
                     $this->logger->info("Nouveau compte créé avec l'email: $email.");
                     $this->session->set('dashboard_success_message', 'Création du compte effectuée avec succès !');
@@ -230,6 +239,7 @@ class HomeController extends BaseController {
         $session = SessionManager::getInstance();
 
         if ($session->get("connecte") === "false") {
+            // On invite l'utilisateur à se connecter
             $this->render('connexion.twig', [
                 'page_title' => 'Se connecter',
                 'errors' => $errors,
@@ -237,13 +247,12 @@ class HomeController extends BaseController {
                 'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
             ]);
         } else {
-            $name = $session->get("nom_utilisateur");
-            $email = $session->get("email");
+            // On affiche les données liées à l'utilisateur
+            $user = $session->get("user");
             
             $this->render('dashboard.twig', [
                 'page_title' => 'Dashboard utilisateur',
-                'name' => $name,
-                'email' => $email,
+                'user' => $user,
                 'errors' => $errors,
                 'success_message' => $success_message,
                 'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
