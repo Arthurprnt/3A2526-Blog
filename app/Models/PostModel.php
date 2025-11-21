@@ -11,7 +11,7 @@ class PostModel extends BaseModel {
      */
     public function findAll(): array {
         try {
-            $stmt = $this->db->query("SELECT * FROM posts ORDER BY created_at DESC");
+            $stmt = $this->db->query("SELECT * FROM Articles ORDER BY date_creation DESC");
             return $stmt->fetchAll();
         } catch (PDOException $e) {
             $this->logger->error("Erreur lors de la récupération de tous les posts", $e);
@@ -24,7 +24,7 @@ class PostModel extends BaseModel {
      */
     public function findById(int $id): object|false {
         try {
-            $stmt = $this->db->prepare("SELECT * FROM posts WHERE id = ?");
+            $stmt = $this->db->prepare("SELECT * FROM Articles WHERE id = ?");
             $stmt->execute([$id]);
             return $stmt->fetch();
         } catch (PDOException $e) {

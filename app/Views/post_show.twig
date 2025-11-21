@@ -2,16 +2,57 @@
 
 {% block content %}
     <article>
-        <h1 class="mb-3">{{ post.title }}</h1>
+        <h1 class="mb-3">{{ post.titre }}</h1>
         <p class="text-muted border-bottom pb-3 mb-3">
-            Publié le {{ post.created_at|date("d/m/Y à H:i") }}
+            Publié le {{ post.date_creation|date("d/m/Y à H:i") }}
         </p>
         
         <div class="lead">
-            {{ post.content|nl2br }}
+            {{ post.contenu|nl2br }}
         </div>
     </article>
 
     <hr class="my-4">
+    <div>
+        <h4 class="mb-3">
+            Commentaires:
+        </h4>
+    </div>
+
+    <form x-show="connected" class="mb-3 action="/3A2526-Blog/post/{{ post.id }}" method="POST" novalidate>
+        
+        {# Champ commentaire #}
+        <div class="mb-3">
+            <textarea class="form-control {% if errors.commentaire %}is-invalid{% endif %}" 
+                        id="commentaire" 
+                        name="commentaire" 
+                        rows="2"
+                        placeholder="Ajoutez un commentaire..."
+                        required>{{ old_input.commentaire|default('') }}</textarea>
+            {% if errors.commentaire %}
+                <div class="invalid-feedback">{{ errors.commentaire }}</div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Envoyer</button>
+    </form>
+
+    {% for comment in comments %}
+        <div class="lead2 mb-3">
+            <div class="h-100">
+                <div class="d-flex flex-column">
+                    <h5 class="card-title">{{ comment.nom_auteur }}</h5>
+                    <p class="card-text">{{ comment.contenu|slice(0, 120) }}</p>
+                </div>
+                <div class="card-footer text-muted">
+                    Publié le {{ comment.date_creation|date("d/m/Y") }}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12">
+            <p>Aucun article à afficher pour le moment.</p>
+        </div>
+    {% endfor %}
     <a href="/3A2526-Blog/" class="btn btn-secondary">&larr; Retour à l'accueil</a>
 {% endblock %}
