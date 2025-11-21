@@ -16,5 +16,18 @@
             <p><BR>Nom utilisateur: {{ user.nom_utilisateur }}</p>
             <p>Adresse mail: {{ user.email }}</p>
         </div>
+        
+        <ul class="navbar-nav mb-2 mb-lg-0 d-flex flex-row gap-2 justify-content-center">
+            <li class="nav-item">
+                <a href="/3A2526-Blog/deconnexion" style="text-decoration: none !important;">
+                  <button
+                    class="btn btn-outline-warning d-flex align-items-center"
+                    aria-label="Se déconnecter à son compte"
+                  >
+                    <span>🔓 Déconnexion</span>
+                  </button>
+                </a>
+            </li>
+        </ul>
     </div>
 {% endblock %}
