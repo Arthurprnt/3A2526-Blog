@@ -16,6 +16,26 @@ class HomeController extends BaseController {
         $this->postModel = new PostModel();
     }
 
+    public function convertTitleToURL($title) { 
+        
+        // Conversion to lwer du titre
+        $title = strtolower($title); 
+        
+        // remplacement des " " par des "-"
+        $title = str_replace(' ', '-', $title); 
+        
+        // Suppression des caractères invalides
+        $title = preg_replace('/[^a-z0-9\-]/', '', $title); 
+        
+        // Suppression des "-" consécutifs
+        $title = preg_replace('/-+/', '-', $title); 
+        
+        // Supprime les "-" en début et fin du titre
+        $title = trim($title, '-'); 
+        
+        return $title; 
+    } 
+
     /**
      * Affiche la page d'accueil avec tous les articles.
      */
@@ -82,7 +102,7 @@ class HomeController extends BaseController {
                 header('Location: /3A2526-Blog/contact');
                 exit;
             } else {
-                $this->logger->warning("Erreur de validation du formulaire de contact.");
+                $this->logger->info("Erreur de validation du formulaire de contact.");
             }
         }
 
@@ -133,7 +153,7 @@ class HomeController extends BaseController {
                     header('Location: /3A2526-Blog/connexion');
                 }
             } else {
-                $this->logger->warning("Erreur lors de la connexion à votre compte.");
+                $this->logger->info("Erreur lors de la connexion à votre compte.");
             }
         }
 
@@ -215,7 +235,7 @@ class HomeController extends BaseController {
                     die("Erreur SQL : " . $e->getMessage());
                 }
             } else {
-                $this->logger->warning("Erreur lors de la création du compte.");
+                $this->logger->info("Erreur lors de la création du compte.");
             }
         }
 
@@ -295,6 +315,29 @@ class HomeController extends BaseController {
             // L'utilisateut ne peut pas créer de post si pas connecté
             header('Location: /3A2526-Blog/');
         } else {
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                // 1. Nettoyage et Validation
+                $titre = $_POST['titre'] ?? '';
+                $contenu = $_POST['contenu'] ?? '';
+                $visibilite = $_POST['visibilite'] ?? '';
+                
+                $this->logger->info($titre);
+
+                if (empty($titre)) $errors['titre'] = "Le post doit avoir un titre.";
+                if (empty($contenu)) $errors['contenu'] = "Le post doit avoir un contenu.";
+                if (empty($visibilite)) $errors['visibilite'] = "Choisissez la visibilité de votre nouveau post.";
+
+                if (empty($errors)) {
+                    $slug = $this->convertTitleToURL($titre);
+
+                    $db = Database::getInstance()->getConnection();
+                    $stmt = $db->prepare("INSERT INTO Articles (utilisateur_id, titre, slug, contenu, statut) VALUES (?, ?, ?, ?, ?)");
+                    $stmt->execute([$session->get("user")["id"], $titre, $slug, $contenu, $visibilite]);
+                } else {
+                    $this->logger->info("Erreur lors d'une tentative d'enregistrement de post.");
+                }
+            }
+
             $this->render('creer.twig', [
                 'page_title' => 'Nouveau post:',
                 'errors' => $errors,
