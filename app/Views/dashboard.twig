@@ -13,21 +13,116 @@
 
     <div class="row justify-content-center">
         <div class="col-lg-7">
-            <p><BR>Nom utilisateur: {{ user.nom_utilisateur }}</p>
-            <p>Adresse mail: {{ user.email }}</p>
-        </div>
-        
-        <ul class="navbar-nav mb-2 mb-lg-0 d-flex flex-row gap-2 justify-content-center">
-            <li class="nav-item">
-                <a href="/3A2526-Blog/deconnexion" style="text-decoration: none !important;">
-                  <button
-                    class="btn btn-outline-warning d-flex align-items-center"
+            <BR>
+            <h3 class="mb-4">Informations du compte</h3>
+
+            <form action="/3A2526-Blog/dashboard" method="POST" novalidate>
+
+                {# Champ Nom #}
+                <div class="mb-3">
+                    <label for="nom" class="form-label">Nom</label>
+                    <input type="text" 
+                            class="form-control {% if errors.nom %}is-invalid{% endif %}" 
+                            id="nom" 
+                            name="nom" 
+                            value="{{ user.nom_utilisateur }}" 
+                            required
+                            disabled>
+                    {% if errors.nom %}
+                        <div class="invalid-feedback">{{ errors.nom }}</div>
+                    {% endif %}
+                </div>
+
+                {# Champ Email #}
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" 
+                            class="form-control {% if errors.email %}is-invalid{% endif %}" 
+                            id="email" 
+                            name="email" 
+                            value="{{ user.email }}" 
+                            required
+                            disabled>
+                    {% if errors.email %}
+                        <div class="invalid-feedback">{{ errors.email }}</div>
+                    {% endif %}
+                </div>
+            
+            </form>
+
+            <BR><BR>
+            <h3 class="mb-4">Changer de mot de passe</h3>
+            <form action="/3A2526-Blog/dashboard" method="POST" novalidate>
+
+                {# Champ old Mdp #}
+                <div class="mb-3">
+                    <label for="old_password" class="form-label">Ancien mot de passe</label>
+                    <input type="password" 
+                            class="form-control {% if errors.old_password %}is-invalid{% endif %}" 
+                            id="old_password" 
+                            name="old_password" 
+                            value="{{ old_input.old_password|default('') }}" 
+                            required>
+                    {% if errors.old_password %}
+                        <div class="invalid-feedback">{{ errors.old_password }}</div>
+                    {% endif %}
+                </div>
+
+                {# Champ new Mdp #}
+                <div class="mb-3">
+                    <label for="new_password" class="form-label">Nouveau mot de passe</label>
+                    <input type="password" 
+                            class="form-control {% if errors.new_password %}is-invalid{% endif %}" 
+                            id="new_password" 
+                            name="new_password" 
+                            value="{{ old_input.new_password|default('') }}" 
+                            required>
+                    {% if errors.new_password %}
+                        <div class="invalid-feedback">{{ errors.new_password }}</div>
+                    {% endif %}
+                </div>
+
+                {# Champ conf Mdp #}
+                <div class="mb-3">
+                    <label for="conf_password" class="form-label">Confirmer nouveau mot de passe</label>
+                    <input type="password" 
+                            class="form-control {% if errors.conf_password %}is-invalid{% endif %}" 
+                            id="conf_password" 
+                            name="conf_password" 
+                            value="{{ old_input.conf_password|default('') }}" 
+                            required>
+                    {% if errors.conf_password %}
+                        <div class="invalid-feedback">{{ errors.conf_password }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">Valider</button>
+
+            </form>
+
+            <div x-show=false>
+                <BR><BR>
+                <h3 class="mb-4">Espace administrateur</h3>
+                <a href="/3A2526-Blog/admin-dashboard" style="text-decoration: none !important;">
+                <button
+                    class="btn btn-outline-primary d-flex align-items-center"
                     aria-label="Se déconnecter à son compte"
-                  >
-                    <span>🔓 Déconnexion</span>
-                  </button>
+                >
+                    <span>🔓 Accéder à l'espace</span>
+                </button>
                 </a>
-            </li>
-        </ul>
+            </div>
+
+            <BR><BR>
+            <h3 class="mb-4">Se déconnecter du compte</h3>
+            <a href="/3A2526-Blog/deconnexion" style="text-decoration: none !important;">
+            <button
+                class="btn btn-outline-warning d-flex align-items-center"
+                aria-label="Se déconnecter à son compte"
+            >
+                <span>🔓 Déconnexion</span>
+            </button>
+            </a>
+        </div>
     </div>
 {% endblock %}
