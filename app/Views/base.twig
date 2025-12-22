@@ -25,7 +25,7 @@
 </head>
 <body class="d-flex flex-column min-vh-100" x-bind:class="{ 'd-font': isDyslexicFont }">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg">
       <div class="container">
         <a class="navbar-brand" href="/3A2526-Blog/">Mon Blog POO</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +35,7 @@
           
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="/3A2526-Blog/">Accueil</a>
+              <a class="nav-link" aria-current="page" href="/3A2526-Blog/">Accueil</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/3A2526-Blog/a-propos">À Propos</a>
@@ -50,7 +50,7 @@
             <li class="nav-item">
                 <button 
                     @click="theme = (theme === 'dark' ? 'light' : 'dark'); localStorage.setItem('theme', theme)" 
-                    class="btn btn-outline-light d-flex align-items-center"
+                    class="btn btn-outline d-flex align-items-center"
                     aria-label="Basculer entre les thèmes clair et foncé"
                 >
                     <span x-show="theme === 'light'">☀️ Clair</span>
@@ -109,7 +109,7 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="mt-auto py-3 bg-light text-center">
+    <footer class="mt-auto py-3 text-center">
         &copy; {{ "now"|date("Y") }} Mon Blog.
     </footer>
 

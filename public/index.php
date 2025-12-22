@@ -72,6 +72,10 @@ switch (true) {
     (new HomeController())->creer();
     break;
 
+    case $url === 'admin-dashboard':
+    (new HomeController())->admin();
+    break;
+
     // Route final : 404
     default:
         (new HomeController())->error404();

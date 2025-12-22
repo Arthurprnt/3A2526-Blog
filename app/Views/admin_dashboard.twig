@@ -1,0 +1,51 @@
+{% extends "base.twig" %}
+
+{% block content %}
+	<h1 class="mb-4">{{ page_title }}</h1>
+	<BR>
+	<h3>Nombre de posts:
+		{{ nb_posts }}</h3>
+	<BR>
+	<h3>Commentaires en attente:</h3>
+	{% if comments is not empty %}
+		<div class="table-responsive">
+			<table class="table table-striped table-hover align-middle">
+				<thead class="table-primary">
+					<tr>
+						<th>Auteur</th>
+						<th>Contenu</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for comment in comments %}
+						<tr>
+							<td>
+								<strong>{{ comment.nom_auteur }}</strong>
+							</td>
+							<td>
+								{{ comment.contenu|slice(0, 120) }}
+								{% if comment.contenu|length > 120 %}
+									…
+								{% endif %}
+							</td>
+							<td class="d-flex gap-2">
+								<form method="POST" action="/3A2526-Blog/admin-dashboard">
+									<input type="hidden" name="_token" value="validate">
+									<button class="btn btn-success btn-sm">Valider</button>
+								</form>
+
+								<form method="POST" action="/3A2526-Blog/admin-dashboard">
+									<input type="hidden" name="_token" value="delete">
+									<button class="btn btn-danger btn-sm">Supprimer</button>
+								</form>
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	{% else %}
+		<p>Aucun commentaire en attente pour le moment.</p>
+	{% endif %}
+{% endblock %}

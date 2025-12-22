@@ -263,11 +263,18 @@ class HomeController extends BaseController {
         } else {
             // On affiche les données liées à l'utilisateur
             $user = $session->get("user");
+            $db = Database::getInstance()->getConnection();
+            $stmt = $db->prepare("SELECT COUNT(*) FROM Role_User WHERE role_id = 1 AND user_id = ?");
+            $stmt->execute([$user["id"]]);
+            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $isAdmin = $res["COUNT(*)"];
             
             $this->render('dashboard.twig', [
                 'page_title' => 'Dashboard utilisateur',
                 'user' => $user,
                 'errors' => $errors,
+                'isAdmin' => $isAdmin,
                 'success_message' => $success_message,
                 'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
             ]);
@@ -344,6 +351,51 @@ class HomeController extends BaseController {
                 'success_message' => $success_message,
                 'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
             ]);
+        }
+    }
+
+    /**
+     * Affiche la page "admin". (NOUVEAU)
+     */
+    public function admin(): void {
+        $errors = [];
+        $success_message = $this->session->get('admin_success_message');
+        $this->session->remove('admin_success_message'); // Message flash
+
+        $db = Database::getInstance()->getConnection();
+        $session = SessionManager::getInstance();
+
+        if ($session->get("connecte") === "false") {
+            // L'utilisateut ne peut pas créer de post si pas connecté
+            header('Location: /3A2526-Blog/');
+        } else {
+            $user = $session->get("user");
+            $stmt = $db->prepare("SELECT COUNT(*) FROM Role_User WHERE role_id = 1 AND user_id = ?");
+            $stmt->execute([$user["id"]]);
+            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+            $isAdmin = $res["COUNT(*)"];
+
+            $stmt = $db->prepare("SELECT * FROM Commentaires WHERE statut = 'En attente'");
+            $stmt->execute([]);
+            $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if ($isAdmin == 0) {
+                header('Location: /3A2526-Blog/');
+            } else {
+                // Récupère lle nombre de post
+                $stmt = $db->prepare("SELECT COUNT(*) FROM Articles");
+                $stmt->execute([]);
+                $nbPosts = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                $this->render('admin_dashboard.twig', [
+                    'page_title' => 'Panel admin:',
+                    'nb_posts' => $nbPosts["COUNT(*)"],
+                    'comments' => $comments,
+                    'errors' => $errors,
+                    'success_message' => $success_message,
+                    'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+                ]);
+            }
         }
     }
 }
