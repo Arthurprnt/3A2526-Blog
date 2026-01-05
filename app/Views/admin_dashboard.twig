@@ -31,12 +31,26 @@
 							</td>
 							<td class="d-flex gap-2">
 								<form method="POST" action="/3A2526-Blog/admin-dashboard">
-									<input type="hidden" name="_token" value="validate">
+									<input type="hidden"
+										   id="titre" name="titre"
+										   value="valider"
+										   required>
+									<input type="hidden"
+										   id="id" name="id"
+										   value="{{comment.id}}"
+										   required>
 									<button class="btn btn-success btn-sm">Valider</button>
 								</form>
 
 								<form method="POST" action="/3A2526-Blog/admin-dashboard">
-									<input type="hidden" name="_token" value="delete">
+									<input type="hidden"
+										   id="titre" name="titre"
+										   value="supprimer"
+										   required>
+									<input type="hidden"
+										   id="id" name="id"
+										   value="{{comment.id}}"
+										   required>
 									<button class="btn btn-danger btn-sm">Supprimer</button>
 								</form>
 							</td>

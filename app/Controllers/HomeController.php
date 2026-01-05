@@ -369,6 +369,22 @@ class HomeController extends BaseController {
             // L'utilisateut ne peut pas créer de post si pas connecté
             header('Location: /3A2526-Blog/');
         } else {
+
+            // Validation ou suppression des commentaires
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $titre = $_POST['titre'] ?? '';
+                $id = $_POST['id'] ?? '';
+                
+                if($titre == "valider") {
+                    $stmt = $db->prepare("UPDATE Commentaires SET statut = 'Approuvé' WHERE id = ?");
+                    $stmt->execute([$id]);
+                } else if($titre == "supprimer") {
+                    $stmt = $db->prepare("DELETE FROM Commentaires WHERE id = ?");
+                    $stmt->execute([$id]);
+                }
+                
+            }
+
             $user = $session->get("user");
             $stmt = $db->prepare("SELECT COUNT(*) FROM Role_User WHERE role_id = 1 AND user_id = ?");
             $stmt->execute([$user["id"]]);

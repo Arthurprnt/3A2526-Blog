@@ -40,6 +40,12 @@
                         <div class="invalid-feedback">{{ errors.contenu }}</div>
                     {% endif %}
                 </div>
+                <script>
+                // Initialize Wysi
+                Wysi({
+                    el: '#contenu'
+                });
+                </script>
 
                 <div class="mb-3">
                     <select cl class="form-control {% if errors.visibilite %}is-invalid{% endif %}" 
