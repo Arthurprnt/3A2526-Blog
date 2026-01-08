@@ -6,6 +6,7 @@ use App\Controllers\Logger;
 use App\Core\BaseController;
 use App\Core\Database;
 use App\Core\SessionManager;
+use App\Core\Permissions;
 use App\Models\PostModel;
 
 class PostController extends BaseController {
@@ -52,9 +53,15 @@ class PostController extends BaseController {
             return;
         }
 
+        $session = SessionManager::getInstance();
+        $user = $session->get('user');
+        $canEdit = (Permissions::getInstance()->userHavePerm($user["id"], 1)) + (Permissions::getInstance()->userHavePerm($user["id"], 2)) + ($post->id === $user["id"]);
+
+
         $this->render('post_show.twig', [
             'page_title' => $post->titre,
             'post' => $post,
+            'canEdit' => $canEdit,
             'comments' => $comments
         ]);
     }

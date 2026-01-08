@@ -69,12 +69,16 @@ switch (true) {
         break;
     
     case $url === 'creer':
-    (new HomeController())->creer();
-    break;
+        (new HomeController())->creer();
+        break;
+
+    case $url === 'edit':
+        (new HomeController())->edit();
+        break;
 
     case $url === 'admin-dashboard':
-    (new HomeController())->admin();
-    break;
+        (new HomeController())->admin();
+        break;
 
     // Route final : 404
     default:

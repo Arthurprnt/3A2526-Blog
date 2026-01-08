@@ -5,6 +5,7 @@ use PDO;
 use App\Core\BaseController;
 use App\Models\PostModel;
 use App\Core\Database;
+use App\Core\Permissions;
 use App\Core\SessionManager;
 use App\Controllers\Logger;
 
@@ -263,12 +264,7 @@ class HomeController extends BaseController {
         } else {
             // On affiche les données liées à l'utilisateur
             $user = $session->get("user");
-            $db = Database::getInstance()->getConnection();
-            $stmt = $db->prepare("SELECT COUNT(*) FROM Role_User WHERE role_id = 1 AND user_id = ?");
-            $stmt->execute([$user["id"]]);
-            $res = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            $isAdmin = $res["COUNT(*)"];
+            $isAdmin = Permissions::getInstance()->userHavePerm($user["id"], 1);
             
             $this->render('dashboard.twig', [
                 'page_title' => 'Dashboard utilisateur',
@@ -340,9 +336,64 @@ class HomeController extends BaseController {
                     $db = Database::getInstance()->getConnection();
                     $stmt = $db->prepare("INSERT INTO Articles (utilisateur_id, titre, slug, contenu, statut) VALUES (?, ?, ?, ?, ?)");
                     $stmt->execute([$session->get("user")["id"], $titre, $slug, $contenu, $visibilite]);
+                    header('Location: /3A2526-Blog/');
+
                 } else {
                     $this->logger->info("Erreur lors d'une tentative d'enregistrement de post.");
                 }
+            }
+
+            $this->render('creer.twig', [
+                'page_title' => 'Nouveau post:',
+                'errors' => $errors,
+                'success_message' => $success_message,
+                'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+            ]);
+        }
+    }
+
+    /**
+     * Affiche la page "edit". (NOUVEAU)
+     */
+    public function edit(): void {
+        $errors = [];
+        $success_message = $this->session->get('creer_success_message');
+        $this->session->remove('creer_success_message'); // Message flash
+
+        $session = SessionManager::getInstance();
+
+        if ($session->get("connecte") === "false") {
+            // L'utilisateut ne peut pas créer de post si pas connecté
+            header('Location: /3A2526-Blog/');
+        } else {
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                // 1. Nettoyage et Validation
+                $id = $_POST['id'] ?? '';
+                $titre = $_POST['titre'] ?? '';
+                $contenu = $_POST['contenu'] ?? '';
+                $visibilite = $_POST['visibilite'] ?? '';
+                $isEnvoie = $_POST['envoie'] ?? '';
+                
+                $this->logger->info($titre);
+
+                if (empty($titre)) $errors['titre'] = "Le post doit avoir un titre.";
+                if (empty($contenu)) $errors['contenu'] = "Le post doit avoir un contenu.";
+                if (empty($visibilite)) $errors['visibilite'] = "Choisissez la visibilité de votre nouveau post.";
+                if ($isEnvoie === "false") $errors['envoie'] = "L'envoie n'a pas été demandé";
+
+                if (empty($errors)) {
+                    $slug = $this->convertTitleToURL($titre);
+
+                    $db = Database::getInstance()->getConnection();
+                    $stmt = $db->prepare("UPDATE Articles SET titre = ?, contenu = ?, statut = ?, date_mise_a_jour = NOW() WHERE id = ?");
+                    $stmt->execute([$titre, $contenu, $visibiliten, $id]);
+                    header('Location: /3A2526-Blog/');
+
+                } else {
+                    $this->logger->info("Erreur lors d'une tentative d'enregistrement de post.");
+                }
+            } else {
+                header('Location: /3A2526-Blog/');
             }
 
             $this->render('creer.twig', [
@@ -386,10 +437,7 @@ class HomeController extends BaseController {
             }
 
             $user = $session->get("user");
-            $stmt = $db->prepare("SELECT COUNT(*) FROM Role_User WHERE role_id = 1 AND user_id = ?");
-            $stmt->execute([$user["id"]]);
-            $res = $stmt->fetch(PDO::FETCH_ASSOC);
-            $isAdmin = $res["COUNT(*)"];
+            $isAdmin = Permissions::getInstance()->userHavePerm($user["id"], 1);
 
             $stmt = $db->prepare("SELECT * FROM Commentaires WHERE statut = 'En attente'");
             $stmt->execute([]);

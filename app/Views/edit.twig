@@ -1,0 +1,76 @@
+{% extends "base.twig" %}
+
+{% block content %}
+    <h1 class="mb-4">{{ page_title }}</h1>
+
+    {% if success_message %}
+        <div class="alert alert-success" role="alert">
+            {{ success_message }}
+        </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+
+            <form action="/3A2526-Blog/edit" method="POST" novalidate>
+
+                <input type="hidden" 
+                        class="form-control {% if errors.titre %}is-invalid{% endif %}" 
+                        id="envoie" 
+                        name="envoie" 
+                        value="true" 
+                        required>
+                
+                {# Champ Titre #}
+                <div class="mb-3">
+                    <label for="titre" class="form-label">Titre</label>
+                    <input type="text" 
+                           class="form-control {% if errors.titre %}is-invalid{% endif %}" 
+                           id="titre" 
+                           name="titre" 
+                           value="{{ old_input.titre }}" 
+                           required>
+                    {% if errors.titre %}
+                        <div class="invalid-feedback">{{ errors.titre }}</div>
+                    {% endif %}
+                </div>
+                
+                {# Champ Contenu #}
+                <div class="mb-3">
+                    <label for="contenu" class="form-label">Contenu</label>
+                    <textarea class="form-control {% if errors.contenu %}is-invalid{% endif %}" 
+                              id="contenu" 
+                              name="contenu" 
+                              rows="5" 
+                              required>{{ old_input.contenu }}</textarea>
+                    {% if errors.contenu %}
+                        <div class="invalid-feedback">{{ errors.contenu }}</div>
+                    {% endif %}
+                </div>
+                <script>
+                // Initialize Wysi
+                Wysi({
+                    el: '#contenu'
+                });
+                </script>
+
+                <div class="mb-3">
+                    <select cl class="form-control {% if errors.visibilite %}is-invalid{% endif %}" 
+                            id="visibilite" 
+                            name="visibilite" 
+                            rows="5" 
+                            required>
+                        <option selected="" value="">--- Visibilité du post ---</option>
+                        <option value="Publié">Publique</option>
+                        <option value="Brouillon">Brouillon</option>
+                    </select>
+                    {% if errors.visibilite %}
+                        <div class="invalid-feedback">{{ errors.visibilite }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">☑️ Valider</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

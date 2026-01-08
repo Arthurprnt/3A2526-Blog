@@ -54,5 +54,49 @@
             <p>Aucun article à afficher pour le moment.</p>
         </div>
     {% endfor %}
-    <a href="/3A2526-Blog/" class="btn btn-secondary">&larr; Retour à l'accueil</a>
+    
+        <form action="/3A2526-Blog/edit" method="POST" novalidate>
+                <a href="/3A2526-Blog/" class="btn btn-secondary">&larr; Retour à l'accueil</a>
+                
+                <input type="hidden" 
+                        class="form-control {% if errors.titre %}is-invalid{% endif %}" 
+                        id="envoie" 
+                        name="envoie" 
+                        value="false" 
+                        required>
+
+                <input type="hidden" 
+                        class="form-control {% if errors.titre %}is-invalid{% endif %}" 
+                        id="id" 
+                        name="id" 
+                        value="{{ post.id }}" 
+                        required>
+
+                <input type="hidden" 
+                        class="form-control {% if errors.titre %}is-invalid{% endif %}" 
+                        id="titre" 
+                        name="titre" 
+                        value="{{ post.titre }}" 
+                        required>
+
+                <textarea class="form-control {% if errors.contenu %}is-invalid{% endif %} d-none" 
+                            id="contenu" 
+                            name="contenu" 
+                            rows="5" 
+                            required>{{ post.contenu }}</textarea>
+
+                <select cl class="form-control {% if errors.visibilite %}is-invalid{% endif %} d-none" 
+                        id="visibilite" 
+                        name="visibilite" 
+                        rows="5" 
+                        required>
+                    <option value="">--- Visibilité du post ---</option>
+                    <option selected="" value="Publié">Publique</option>
+                    <option value="Brouillon">Brouillon</option>
+                </select>
+
+            {% if canEdit %}
+            <button type="submit" class="btn btn-primary">Editer l'article</button>
+            {% endif %}
+        </form>
 {% endblock %}
