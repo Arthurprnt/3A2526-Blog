@@ -65,4 +65,125 @@ class PostController extends BaseController {
             'comments' => $comments
         ]);
     }
+
+    
+    /**
+     * Affiche la page "creer". (NOUVEAU)
+     */
+    public function creer(): void {
+        $errors = [];
+        $success_message = $this->session->get('creer_success_message');
+        $this->session->remove('creer_success_message'); // Message flash
+
+        $session = SessionManager::getInstance();
+
+        if ($session->get("connecte") === "false") {
+            // L'utilisateut ne peut pas créer de post si pas connecté
+            header('Location: /3A2526-Blog/');
+        } else {
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                // 1. Nettoyage et Validation
+                $titre = $_POST['titre'] ?? '';
+                $contenu = $_POST['contenu'] ?? '';
+                $visibilite = $_POST['visibilite'] ?? '';
+                
+                $this->logger->info($titre);
+
+                if (empty($titre)) $errors['titre'] = "Le post doit avoir un titre.";
+                if (empty($contenu)) $errors['contenu'] = "Le post doit avoir un contenu.";
+                if (empty($visibilite)) $errors['visibilite'] = "Choisissez la visibilité de votre nouveau post.";
+
+                if (empty($errors)) {
+                    $slug = $this->convertTitleToURL($titre);
+
+                    $db = Database::getInstance()->getConnection();
+                    $stmt = $db->prepare("INSERT INTO Articles (utilisateur_id, titre, slug, contenu, statut) VALUES (?, ?, ?, ?, ?)");
+                    $stmt->execute([$session->get("user")["id"], $titre, $slug, $contenu, $visibilite]);
+                    header('Location: /3A2526-Blog/');
+
+                } else {
+                    $this->logger->info("Erreur lors d'une tentative d'enregistrement de post.");
+                }
+            }
+
+            $this->render('creer.twig', [
+                'page_title' => 'Nouveau post:',
+                'errors' => $errors,
+                'success_message' => $success_message,
+                'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+            ]);
+        }
+    }
+
+    /**
+     * Affiche la page "myposts". (NOUVEAU)
+     */
+    public function myposts(): void {
+        $session = SessionManager::getInstance();
+        if ($session->get("connecte") === "false") {
+            header('Location: /3A2526-Blog/');
+        } else {
+            $publics_posts = $this->postModel->findPublicsBy($session->get('user')["id"]);
+            $privates_posts = $this->postModel->findPrivatesBy($session->get('user')["id"]);
+
+            $this->render('my_post.twig', [
+                'page_title' => 'Mes posts:',
+                'public_posts' => $publics_posts,
+                'private_posts' => $privates_posts
+            ]);
+        }
+    }
+
+    /**
+     * Affiche la page "edit". (NOUVEAU)
+     */
+    public function edit(): void {
+        $errors = [];
+        $success_message = $this->session->get('creer_success_message');
+        $this->session->remove('creer_success_message'); // Message flash
+
+        $session = SessionManager::getInstance();
+
+        if ($session->get("connecte") === "false") {
+            // L'utilisateut ne peut pas créer de post si pas connecté
+            header('Location: /3A2526-Blog/');
+        } else {
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                // 1. Nettoyage et Validation
+                $id = $_POST['id'] ?? '';
+                $titre = $_POST['titre'] ?? '';
+                $contenu = $_POST['contenu'] ?? '';
+                $visibilite = $_POST['visibilite'] ?? '';
+                $isEnvoie = $_POST['envoie'] ?? '';
+                
+                $this->logger->info($titre);
+
+                if (empty($titre)) $errors['titre'] = "Le post doit avoir un titre.";
+                if (empty($contenu)) $errors['contenu'] = "Le post doit avoir un contenu.";
+                if (empty($visibilite)) $errors['visibilite'] = "Choisissez la visibilité de votre nouveau post.";
+                if ($isEnvoie === "false") $errors['envoie'] = "L'envoie n'a pas été demandé";
+
+                if (empty($errors)) {
+                    $slug = $this->convertTitleToURL($titre);
+
+                    $db = Database::getInstance()->getConnection();
+                    $stmt = $db->prepare("UPDATE Articles SET titre = ?, contenu = ?, statut = ?, date_mise_a_jour = NOW() WHERE id = ?");
+                    $stmt->execute([$titre, $contenu, $visibiliten, $id]);
+                    header('Location: /3A2526-Blog/');
+
+                } else {
+                    $this->logger->info("Erreur lors d'une tentative d'enregistrement de post.");
+                }
+            } else {
+                header('Location: /3A2526-Blog/');
+            }
+
+            $this->render('creer.twig', [
+                'page_title' => 'Editer le post:',
+                'errors' => $errors,
+                'success_message' => $success_message,
+                'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+            ]);
+        }
+    }
 }

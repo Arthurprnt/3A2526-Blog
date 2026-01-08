@@ -11,6 +11,7 @@ require_once ROOT_PATH . '/vendor/autoload.php';
 // 3. Importer les classes nécessaires
 use App\Core\SessionManager;
 use App\Controllers\HomeController;
+use App\Controllers\LoginController;
 use App\Controllers\PostController;
 
 // 4. Démarrer la session (via le Singleton)
@@ -46,38 +47,42 @@ switch (true) {
     
     // Route 5 : Page de Connexion
     case $url === 'connexion':
-        (new HomeController())->connexion();
+        (new LoginController())->connexion();
         break;
     
     // Route 6 : Page de Déconnexion
     case $url === 'deconnexion':
-        (new HomeController())->deconnexion();
+        (new LoginController())->deconnexion();
         break;
 
     // Route 7 : Page de Signup
     case $url === 'signup':
-        (new HomeController())->signup();
+        (new LoginController())->signup();
         break;
     
     // Route 8 : Page de Dashboard
     case $url === 'dashboard':
-        (new HomeController())->dashboard();
+        (new LoginController())->dashboard();
         break;
 
-    case $url === 'delete_account':
-        (new HomeController())->delete_account();
+    case $url === 'delete-account':
+        (new LoginController())->delete_account();
         break;
     
+    case $url === 'mes-articles':
+        (new PostController())->myposts();
+        break;
+
     case $url === 'creer':
-        (new HomeController())->creer();
+        (new PostController())->creer();
         break;
 
     case $url === 'edit':
-        (new HomeController())->edit();
+        (new PostController())->edit();
         break;
 
     case $url === 'admin-dashboard':
-        (new HomeController())->admin();
+        (new LoginController())->admin();
         break;
 
     // Route final : 404
