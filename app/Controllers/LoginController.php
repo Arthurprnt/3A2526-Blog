@@ -3,12 +3,11 @@ namespace App\Controllers;
 
 use PDO;
 use App\Core\BaseController;
+use App\Core\SessionManager;
 use App\Models\AccountModel;
 use App\Models\PostModel;
 use App\Models\PermissionsModel;
 use App\Models\CommentsModel;
-use App\Core\Database;
-use App\Core\SessionManager;
 use App\Controllers\Logger;
 
 class LoginController extends BaseController {
@@ -24,26 +23,6 @@ class LoginController extends BaseController {
         $this->postModel = new PostModel();
         $this->permModel = new PermissionsModel();
     }
-
-    public function convertTitleToURL($title) { 
-        
-        // Conversion to lwer du titre
-        $title = strtolower($title); 
-        
-        // remplacement des " " par des "-"
-        $title = str_replace(' ', '-', $title); 
-        
-        // Suppression des caractères invalides
-        $title = preg_replace('/[^a-z0-9\-]/', '', $title); 
-        
-        // Suppression des "-" consécutifs
-        $title = preg_replace('/-+/', '-', $title); 
-        
-        // Supprime les "-" en début et fin du titre
-        $title = trim($title, '-'); 
-        
-        return $title; 
-    } 
 
     /**
      * Affiche la page "Connexion". (NOUVEAU)
@@ -136,9 +115,7 @@ class LoginController extends BaseController {
                 // 3. Redirection (Post/Redirect/Get pattern)
                 try {
                     // Création de l'utilisateur dans la bd
-                    $db = Database::getInstance()->getConnection();
-                    $stmt = $db->prepare("INSERT INTO Utilisateurs (nom_utilisateur, email, mot_de_passe, est_actif) VALUES (?, ?, ?, 1)");
-                    $stmt->execute([$name, $email, password_hash($password, PASSWORD_DEFAULT)]);
+                    $this->accountModel->createUser($name, $email, $password);
 
                     // Récupère l'id de l'utilisateur qui vient d'être créé
                     $account = $this->accountModel->getUser($email);
@@ -150,8 +127,7 @@ class LoginController extends BaseController {
                     $userId = $account["id"];
 
                     // Ajoute le rôle par défaut au nouvel utilisateur
-                    $stmt = $db->prepare("INSERT INTO Role_User (role_id, user_id) VALUES (3, ?)");
-                    $stmt->execute([$userId]);
+                    $this->permModel->addPermToUser($userId, 3);
 
                     $this->logger->info("Nouveau compte créé avec l'email: $email.");
                     $this->session->set('dashboard_success_message', 'Création du compte effectuée avec succès !');
@@ -217,9 +193,8 @@ class LoginController extends BaseController {
             header('Location: /3A2526-Blog/');
         } else {
             $user = $session->get('user');
-            $db = Database::getInstance()->getConnection();
-            $stmt = $db->prepare("DELETE FROM Utilisateurs WHERE email = ?");
-            $stmt->execute([$user['email']]);
+            $this->accountModel->deleteUser($user['email']);
+
             $this->render('delete_account.twig', [
                 'page_title' => 'Suppression du compte',
                 'errors' => $errors,
@@ -237,7 +212,6 @@ class LoginController extends BaseController {
         $success_message = $this->session->get('admin_success_message');
         $this->session->remove('admin_success_message'); // Message flash
 
-        $db = Database::getInstance()->getConnection();
         $session = SessionManager::getInstance();
 
         if ($session->get("connecte") === "false") {
@@ -251,11 +225,9 @@ class LoginController extends BaseController {
                 $id = $_POST['id'] ?? '';
                 
                 if($titre == "valider") {
-                    $stmt = $db->prepare("UPDATE Commentaires SET statut = 'Approuvé' WHERE id = ?");
-                    $stmt->execute([$id]);
+                    $this->commModel->approveComment($id);
                 } else if($titre == "supprimer") {
-                    $stmt = $db->prepare("DELETE FROM Commentaires WHERE id = ?");
-                    $stmt->execute([$id]);
+                    $this->commModel->deleteComment($id);
                 }
                 
             }

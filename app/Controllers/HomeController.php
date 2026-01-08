@@ -19,26 +19,6 @@ class HomeController extends BaseController {
         $this->permModel = new PermissionsModel();
     }
 
-    public function convertTitleToURL($title) { 
-        
-        // Conversion to lwer du titre
-        $title = strtolower($title); 
-        
-        // remplacement des " " par des "-"
-        $title = str_replace(' ', '-', $title); 
-        
-        // Suppression des caractères invalides
-        $title = preg_replace('/[^a-z0-9\-]/', '', $title); 
-        
-        // Suppression des "-" consécutifs
-        $title = preg_replace('/-+/', '-', $title); 
-        
-        // Supprime les "-" en début et fin du titre
-        $title = trim($title, '-'); 
-        
-        return $title; 
-    } 
-
     /**
      * Affiche la page d'accueil avec tous les articles.
      */

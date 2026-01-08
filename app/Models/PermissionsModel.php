@@ -13,4 +13,9 @@ class PermissionsModel extends BaseModel{
         $hasPerm = $res["COUNT(*)"];
         return $hasPerm;
     }
+
+    public function addPermToUser($userId, $perm) {
+        $stmt = $this->db->prepare("INSERT INTO Role_User (role_id, user_id) VALUES (?, ?)");
+        $stmt->execute([$perm, $userId]);
+    }
 }

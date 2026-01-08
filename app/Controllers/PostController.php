@@ -6,16 +6,39 @@ use App\Controllers\Logger;
 use App\Core\BaseController;
 use App\Core\Database;
 use App\Core\SessionManager;
-use App\Core\Permissions;
+use App\Models\ArticleModel;
+use App\Models\CommentsModel;
+use App\Models\PermissionsModel;
 use App\Models\PostModel;
 
 class PostController extends BaseController {
+    private ArticleModel $articleModel;
+    private PermissionsModel $permModel;
     private PostModel $postModel;
+    private CommentsModel $commModel;
 
     public function __construct() {
         parent::__construct(); 
+        $this->articleModel = new ArticleModel();
+        $this->commModel = new CommentsModel();
+        $this->permModel = new PermissionsModel();
         $this->postModel = new PostModel();
     }
+
+    public function convertTitleToURL($title) { 
+        
+        // Conversion to lwer du titre
+        $title = strtolower($title); 
+        // remplacement des " " par des "-"
+        $title = str_replace(' ', '-', $title); 
+        // Suppression des caractères invalides
+        $title = preg_replace('/[^a-z0-9\-]/', '', $title); 
+        // Suppression des "-" consécutifs
+        $title = preg_replace('/-+/', '-', $title); 
+        // Supprime les "-" en début et fin du titre
+        $title = trim($title, '-'); 
+        return $title; 
+    } 
 
     /**
      * Affiche un article spécifique par son ID.
@@ -33,19 +56,14 @@ class PostController extends BaseController {
 
             if (empty($erros)) {
                 $session = SessionManager::getInstance();
-                $db = Database::getInstance()->getConnection();
-                $stmt = $db->prepare("INSERT INTO Commentaires (article_id, nom_auteur, email_auteur, contenu, statut) VALUES (?, ?, ?, ?, 'En attente')");
-                $stmt->execute([$post->id, $session->get("user")["nom_utilisateur"], $session->get("user")["email"], $commentaire]);
+                $this->commModel->postComment($post->id, $session->get("user")["nom_utilisateur"], $session->get("user")["email"], $commentaire);
 
             } else {
                 $this->logger->info("Tentative d'envoie de commentaire vide.");
             }
         }
 
-        $db = Database::getInstance()->getConnection();
-        $stmt = $db->prepare("SELECT * FROM Commentaires WHERE article_id = ? AND statut = 'Approuvé' ORDER BY date_commentaire DESC");
-        $stmt->execute([$post->id]);
-        $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $comments = $this->commModel->getArticleComments($post->id);
 
         if (!$post) {
             // Si l'article n'existe pas, on redirige vers la 404
@@ -55,7 +73,7 @@ class PostController extends BaseController {
 
         $session = SessionManager::getInstance();
         $user = $session->get('user');
-        $canEdit = (Permissions::getInstance()->userHavePerm($user["id"], 1)) + (Permissions::getInstance()->userHavePerm($user["id"], 2)) + ($post->id === $user["id"]);
+        $canEdit = ($this->permModel->userHavePerm($user["id"], 1)) + ($this->permModel->userHavePerm($user["id"], 2)) + ($post->id === $user["id"]);
 
 
         $this->render('post_show.twig', [
@@ -95,10 +113,7 @@ class PostController extends BaseController {
 
                 if (empty($errors)) {
                     $slug = $this->convertTitleToURL($titre);
-
-                    $db = Database::getInstance()->getConnection();
-                    $stmt = $db->prepare("INSERT INTO Articles (utilisateur_id, titre, slug, contenu, statut) VALUES (?, ?, ?, ?, ?)");
-                    $stmt->execute([$session->get("user")["id"], $titre, $slug, $contenu, $visibilite]);
+                    $this->articleModel->createArticle($session->get("user")["id"], $titre, $slug, $contenu, $visibilite);
                     header('Location: /3A2526-Blog/');
 
                 } else {
@@ -164,11 +179,7 @@ class PostController extends BaseController {
                 if ($isEnvoie === "false") $errors['envoie'] = "L'envoie n'a pas été demandé";
 
                 if (empty($errors)) {
-                    $slug = $this->convertTitleToURL($titre);
-
-                    $db = Database::getInstance()->getConnection();
-                    $stmt = $db->prepare("UPDATE Articles SET titre = ?, contenu = ?, statut = ?, date_mise_a_jour = NOW() WHERE id = ?");
-                    $stmt->execute([$titre, $contenu, $visibiliten, $id]);
+                    $this->articleModel->updateArticle($titre, $contenu, $visibiliten, $id);
                     header('Location: /3A2526-Blog/');
 
                 } else {
