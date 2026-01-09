@@ -106,6 +106,7 @@ class PostController extends BaseController {
                 if (empty($errors)) {
                     $slug = $this->convertTitleToURL($titre);
                     $this->postModel->createArticle($this->session->get("user")["id"], $titre, $slug, $contenu, $visibilite);
+                    $this->session->set('home_success_message', 'Article publié avec succès !');
                     header('Location: /3A2526-Blog/');
 
                 } else {
@@ -169,21 +170,22 @@ class PostController extends BaseController {
 
                 if (empty($errors)) {
                     $this->postModel->updateArticle($titre, $contenu, $visibiliten, $id);
+                    $this->session->set('home_success_message', 'Votre artcile a été édité avec succès !');
                     header('Location: /3A2526-Blog/');
 
                 } else {
                     $this->logger->info("Erreur lors d'une tentative d'enregistrement de post.");
                 }
+
+                $this->render('edit.twig', [
+                    'page_title' => 'Editer le post:',
+                    'errors' => $errors,
+                    'success_message' => $success_message,
+                    'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
+                ]);
             } else {
                 header('Location: /3A2526-Blog/');
             }
-
-            $this->render('creer.twig', [
-                'page_title' => 'Editer le post:',
-                'errors' => $errors,
-                'success_message' => $success_message,
-                'old_input' => $_POST ?? [] // Garder les valeurs précédentes en cas d'erreur
-            ]);
         }
     }
 }

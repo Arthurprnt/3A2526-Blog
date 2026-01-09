@@ -23,11 +23,15 @@ class HomeController extends BaseController {
      * Affiche la page d'accueil avec tous les articles.
      */
     public function index(): void {
+        $success_message = $this->session->get('home_success_message');
+        $this->session->remove('home_success_message'); // Message flash
+
         $this->logger->info("Page d'accueil demandée.");
         $posts = $this->postModel->findAll();
 
         $this->render('home.twig', [
             'page_title' => 'Accueil du Blog',
+            'success_message' => $success_message,
             'posts' => $posts
         ]);
     }
@@ -83,8 +87,8 @@ class HomeController extends BaseController {
                 $this->logger->info("Formulaire de contact soumis par $name ($email).");
                 
                 // 3. Redirection (Post/Redirect/Get pattern)
-                $this->session->set('contact_success_message', 'Votre message a bien été envoyé !');
-                header('Location: /3A2526-Blog/contact');
+                $this->session->set('home_success_message', 'Votre message a bien été envoyé !');
+                header('Location: /3A2526-Blog/');
                 exit;
             } else {
                 $this->logger->info("Erreur de validation du formulaire de contact.");

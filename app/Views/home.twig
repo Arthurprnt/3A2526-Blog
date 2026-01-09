@@ -3,14 +3,11 @@
 {% block content %}
     <h1 class="mb-4">{{ page_title }}</h1>
 
-    <div x-data="{ open: false }" class="mb-4">
-        <button @click="open = !open" class="btn btn-outline-primary btn-sm">
-            <span x-show="!open">Afficher</span><span x-show="open">Masquer</span> le message
-        </button>
-        <div x-show="open" x-transition class="alert alert-info mt-2">
-            Ceci est un blog mobile-first avec Alpine.js !
+    {% if success_message %}
+        <div class="alert alert-success" role="alert">
+            {{ success_message }}
         </div>
-    </div>
+    {% endif %}
 
     <div class="row g-4">
         {% for post in posts %}
