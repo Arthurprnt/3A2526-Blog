@@ -6,27 +6,23 @@ use App\Controllers\Logger;
 use App\Core\BaseController;
 use App\Core\Database;
 use App\Core\SessionManager;
-use App\Models\ArticleModel;
 use App\Models\CommentsModel;
 use App\Models\PermissionsModel;
 use App\Models\PostModel;
 
 class PostController extends BaseController {
-    private ArticleModel $articleModel;
     private PermissionsModel $permModel;
     private PostModel $postModel;
     private CommentsModel $commModel;
 
     public function __construct() {
         parent::__construct(); 
-        $this->articleModel = new ArticleModel();
         $this->commModel = new CommentsModel();
         $this->permModel = new PermissionsModel();
         $this->postModel = new PostModel();
     }
 
     public function convertTitleToURL($title) { 
-        
         // Conversion to lwer du titre
         $title = strtolower($title); 
         // remplacement des " " par des "-"
@@ -55,11 +51,10 @@ class PostController extends BaseController {
             if (empty($commentaire)) $errors['commentaire'] = "Vous ne pouvez pas envoyer un commentaire vide.";
 
             if (empty($erros)) {
-                $session = SessionManager::getInstance();
-                $this->commModel->postComment($post->id, $session->get("user")["nom_utilisateur"], $session->get("user")["email"], $commentaire);
+                $this->commModel->postComment($post->id, $this->session->get("user")["nom_utilisateur"], $this->session->get("user")["email"], $commentaire);
 
             } else {
-                $this->logger->info("Tentative d'envoie de commentaire vide.");
+                $this->logger->warning("Tentative d'envoie de commentaire vide.");
             }
         }
 
@@ -71,8 +66,7 @@ class PostController extends BaseController {
             return;
         }
 
-        $session = SessionManager::getInstance();
-        $user = $session->get('user');
+        $user = $this->session->get('user');
         $canEdit = ($this->permModel->userHavePerm($user["id"], 1)) + ($this->permModel->userHavePerm($user["id"], 2)) + ($post->id === $user["id"]);
 
 
@@ -93,9 +87,7 @@ class PostController extends BaseController {
         $success_message = $this->session->get('creer_success_message');
         $this->session->remove('creer_success_message'); // Message flash
 
-        $session = SessionManager::getInstance();
-
-        if ($session->get("connecte") === "false") {
+        if ($this->session->get("connecte") === "false") {
             // L'utilisateut ne peut pas créer de post si pas connecté
             header('Location: /3A2526-Blog/');
         } else {
@@ -113,7 +105,7 @@ class PostController extends BaseController {
 
                 if (empty($errors)) {
                     $slug = $this->convertTitleToURL($titre);
-                    $this->articleModel->createArticle($session->get("user")["id"], $titre, $slug, $contenu, $visibilite);
+                    $this->postModel->createArticle($this->session->get("user")["id"], $titre, $slug, $contenu, $visibilite);
                     header('Location: /3A2526-Blog/');
 
                 } else {
@@ -134,12 +126,11 @@ class PostController extends BaseController {
      * Affiche la page "myposts". (NOUVEAU)
      */
     public function myposts(): void {
-        $session = SessionManager::getInstance();
-        if ($session->get("connecte") === "false") {
+        if ($this->session->get("connecte") === "false") {
             header('Location: /3A2526-Blog/');
         } else {
-            $publics_posts = $this->postModel->findPublicsBy($session->get('user')["id"]);
-            $privates_posts = $this->postModel->findPrivatesBy($session->get('user')["id"]);
+            $publics_posts = $this->postModel->findPublicsBy($this->session->get('user')["id"]);
+            $privates_posts = $this->postModel->findPrivatesBy($this->session->get('user')["id"]);
 
             $this->render('my_post.twig', [
                 'page_title' => 'Mes posts:',
@@ -157,9 +148,7 @@ class PostController extends BaseController {
         $success_message = $this->session->get('creer_success_message');
         $this->session->remove('creer_success_message'); // Message flash
 
-        $session = SessionManager::getInstance();
-
-        if ($session->get("connecte") === "false") {
+        if ($this->session->get("connecte") === "false") {
             // L'utilisateut ne peut pas créer de post si pas connecté
             header('Location: /3A2526-Blog/');
         } else {
@@ -179,7 +168,7 @@ class PostController extends BaseController {
                 if ($isEnvoie === "false") $errors['envoie'] = "L'envoie n'a pas été demandé";
 
                 if (empty($errors)) {
-                    $this->articleModel->updateArticle($titre, $contenu, $visibiliten, $id);
+                    $this->postModel->updateArticle($titre, $contenu, $visibiliten, $id);
                     header('Location: /3A2526-Blog/');
 
                 } else {

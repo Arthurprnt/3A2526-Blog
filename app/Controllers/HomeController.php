@@ -48,6 +48,8 @@ class HomeController extends BaseController {
      * Affiche la page "À Propos". (NOUVEAU)
      */
     public function about(): void {
+        $this->logger->info("Page about demandée.");
+
         $this->render('about.twig', [
             'page_title' => 'À Propos de ce Blog'
         ]);

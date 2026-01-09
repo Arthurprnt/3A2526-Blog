@@ -44,9 +44,8 @@ class LoginController extends BaseController {
                 $account = $this->accountModel->getUser($email);
 
                 if ($account && password_verify($password, $account['mot_de_passe'])) {
-                    $session = SessionManager::getInstance();
-                    $session->set("connecte", "true");
-                    $session->set("user", $account);
+                    $this->session->set("connecte", "true");
+                    $this->session->set("user", $account);
 
                     $this->logger->info("Nouvelle connexion au compte: $email.");
                 
@@ -60,7 +59,7 @@ class LoginController extends BaseController {
                     header('Location: /3A2526-Blog/connexion');
                 }
             } else {
-                $this->logger->info("Erreur lors de la connexion à votre compte.");
+                $this->logger->warning("Erreur lors de la connexion à un compte.");
             }
         }
 
@@ -77,12 +76,11 @@ class LoginController extends BaseController {
      */
     public function deconnexion(): void {
         $errors = [];
-        $success_message = $this->session->get('deconnexion_success_message');
-        $this->session->remove('deconnexion_success_message'); // Message flash
 
-        $session = SessionManager::getInstance();
-        $session->set("connecte", "false");
-        $session->set("user", "");
+        $this->session->set("connecte", "false");
+        $this->session->set("user", "");
+
+        $this->logger->info("Un utilisateur s'est déconnecté de son compte.");
 
         $this->render('deconnexion.twig', [
             'page_title' => 'Déconnexion',
@@ -120,9 +118,8 @@ class LoginController extends BaseController {
                     // Récupère l'id de l'utilisateur qui vient d'être créé
                     $account = $this->accountModel->getUser($email);
 
-                    $session = SessionManager::getInstance();
-                    $session->set("connecte", "true");
-                    $session->set("user", $account);
+                    $this->session->set("connecte", "true");
+                    $this->session->set("user", $account);
 
                     $userId = $account["id"];
 
@@ -137,7 +134,7 @@ class LoginController extends BaseController {
                     die("Erreur SQL : " . $e->getMessage());
                 }
             } else {
-                $this->logger->info("Erreur lors de la création du compte.");
+                $this->logger->warning("Erreur lors de la création d'un compte.");
             }
         }
 
@@ -153,18 +150,18 @@ class LoginController extends BaseController {
      * Affiche la page "Dashboard". (NOUVEAU)
      */
     public function dashboard(): void {
+        $this->logger->info("Page dashboard demandée.");
+
         $errors = [];
         $success_message = $this->session->get('dashboard_success_message');
         $this->session->remove('dashboard_success_message'); // Message flash
 
-        $session = SessionManager::getInstance();
-
-        if ($session->get("connecte") === "false") {
+        if ($this->session->get("connecte") === "false") {
             // On invite l'utilisateur à se connecter
             header('Location: /3A2526-Blog/connexion');
         } else {
             // On affiche les données liées à l'utilisateur
-            $user = $session->get("user");
+            $user = $this->session->get("user");
             $isAdmin = $this->permModel->userHavePerm($user["id"], 1);
             
             $this->render('dashboard.twig', [
@@ -186,14 +183,14 @@ class LoginController extends BaseController {
         $success_message = $this->session->get('delete_account_success_message');
         $this->session->remove('delete_account_success_message'); // Message flash
 
-        $session = SessionManager::getInstance();
-
-        if ($session->get("connecte") === "false") {
+        if ($this->session->get("connecte") === "false") {
             // L'utilisateut ne peut pas supp son compte si pas connecté
             header('Location: /3A2526-Blog/');
         } else {
-            $user = $session->get('user');
+            $user = $this->session->get('user');
             $this->accountModel->deleteUser($user['email']);
+
+            $this->logger->info("L'utilisateur " . $user['email'] . " a supprimé son compte.");
 
             $this->render('delete_account.twig', [
                 'page_title' => 'Suppression du compte',
@@ -208,13 +205,13 @@ class LoginController extends BaseController {
      * Affiche la page "admin". (NOUVEAU)
      */
     public function admin(): void {
+        $this->logger->info("La page du panel admin a été demandée.");
+
         $errors = [];
         $success_message = $this->session->get('admin_success_message');
         $this->session->remove('admin_success_message'); // Message flash
 
-        $session = SessionManager::getInstance();
-
-        if ($session->get("connecte") === "false") {
+        if ($this->session->get("connecte") === "false") {
             // L'utilisateut ne peut pas créer de post si pas connecté
             header('Location: /3A2526-Blog/');
         } else {
@@ -232,7 +229,7 @@ class LoginController extends BaseController {
                 
             }
 
-            $user = $session->get("user");
+            $user = $this->session->get("user");
             $isAdmin = $this->permModel->userHavePerm($user["id"], 1);
 
             $comments = $this->commModel->getPendingComments();
